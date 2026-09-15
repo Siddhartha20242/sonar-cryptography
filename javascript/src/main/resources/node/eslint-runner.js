@@ -55,20 +55,17 @@ process.stdin.on('end', () => {
           'createSecureContext', 'connect', 'createServer'
         ];
 
-        const lines = content.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-          
+        const processStatement = (statement, startLine) => {
           // Check for variable assignment patterns: const x = crypto.method(
           const assignRegex = /(?:const|let|var)\s+(\w+)\s*=\s*(crypto|tls)\.(\w+)\s*\(/g;
           let assignMatch;
-          while ((assignMatch = assignRegex.exec(line)) !== null) {
+          while ((assignMatch = assignRegex.exec(statement)) !== null) {
             const varName = assignMatch[1];
             const objectName = assignMatch[2];
             const methodName = assignMatch[3];
-            
+
             if (cryptoMethods.includes(methodName)) {
-              const args = extractArgs(line, assignMatch.index + assignMatch[0].length - 1);
+              const args = extractArgs(statement, assignMatch.index + assignMatch[0].length - 1);
               const resultType = resultTypes[methodName] || 'object';
               bindings[varName] = resultType;
               calls.push({
@@ -77,42 +74,74 @@ process.stdin.on('end', () => {
                 objectType: objectName,
                 resultType: resultType,
                 variableName: varName,
-                line: i + 1,
+                line: startLine,
                 column: assignMatch.index + 1,
                 arguments: args
               });
             }
           }
-          
+
           // Check for direct calls: crypto.method(
           const directRegex = /(\w+)\.(\w+)\s*\(/g;
           let directMatch;
-          while ((directMatch = directRegex.exec(line)) !== null) {
+          while ((directMatch = directRegex.exec(statement)) !== null) {
             const objectName = directMatch[1];
             const methodName = directMatch[2];
-            
+
             // Skip if this was already captured as an assignment
             const assignmentPrefix = /(?:const|let|var)\s+\w+\s*=\s*$/.test(
-              line.substring(0, directMatch.index)
+              statement.substring(0, directMatch.index)
             );
             if (assignmentPrefix) {
               continue;
             }
-            
+
             if (cryptoMethods.includes(methodName)) {
-              const args = extractArgs(line, directMatch.index + directMatch[0].length - 1);
+              const args = extractArgs(statement, directMatch.index + directMatch[0].length - 1);
               calls.push({
                 kind: 'call',
                 methodName: methodName,
                 objectType: bindings[objectName] || objectName,
                 resultType: 'object',
                 variableName: null,
-                line: i + 1,
+                line: startLine,
                 column: directMatch.index + 1,
                 arguments: args
               });
             }
           }
+        };
+
+        const lines = content.split('\n');
+        let buffer = '';
+        let bufferStartLine = 0;
+        let depth = 0;
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+
+          if (buffer === '') {
+            bufferStartLine = i + 1;
+          }
+
+          buffer += (buffer === '' ? '' : ' ') + line;
+
+          for (const ch of line) {
+            if (ch === '(' || ch === '{' || ch === '[') depth++;
+            if (ch === ')' || ch === '}' || ch === ']') depth--;
+          }
+
+          if (depth > 0) {
+            continue;
+          }
+
+          processStatement(buffer, bufferStartLine);
+          buffer = '';
+          depth = 0;
+        }
+
+        if (buffer.trim() !== '') {
+          processStatement(buffer, bufferStartLine);
         }
 
         results.push({

@@ -51,3 +51,4 @@ venv/
 .claude/worktrees
 .superpowers
 javascript/src/main/resources/node/
+*.code-workspace

@@ -60,7 +60,7 @@ class ESLintBridgeTest {
                                                         || tree
                                                                 instanceof
                                                                 com.ibm.plugin.javascript.api
-                                                                                .CallExpressionWithBlockTree))
+                                                                        .CallExpressionWithBlockTree))
                 .isTrue();
         CallExpressionTree createHash =
                 blockTree.statements().stream()

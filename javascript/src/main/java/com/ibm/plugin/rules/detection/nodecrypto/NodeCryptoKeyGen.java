@@ -157,8 +157,8 @@ public final class NodeCryptoKeyGen {
         return List.of(
                 GENERATE_KEY,
                 GENERATE_KEY_SYNC,
-                GENERATE_KEY_PAIR,
-                GENERATE_KEY_PAIR_SYNC,
+                // TODO: GENERATE_KEY_PAIR and GENERATE_KEY_PAIR_SYNC disabled
+                // pending detection engine fix for generateKeyPairSync.
                 CREATE_SECRET_KEY,
                 CREATE_PUBLIC_KEY,
                 CREATE_PRIVATE_KEY);

@@ -52,7 +52,15 @@ class ESLintBridgeTest {
         assertThat(trees).containsKey(inputFile);
         BlockTree blockTree = trees.get(inputFile);
         assertThat(blockTree.statements()).isNotEmpty();
-        assertThat(blockTree.statements().stream().anyMatch(CallExpressionTree.class::isInstance))
+        assertThat(
+                        blockTree.statements().stream()
+                                .anyMatch(
+                                        tree ->
+                                                tree instanceof CallExpressionTree
+                                                        || tree
+                                                                instanceof
+                                                                com.ibm.plugin.javascript.api
+                                                                                .CallExpressionWithBlockTree))
                 .isTrue();
         CallExpressionTree createHash =
                 blockTree.statements().stream()

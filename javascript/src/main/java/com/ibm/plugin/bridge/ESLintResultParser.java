@@ -102,12 +102,11 @@ public final class ESLintResultParser {
                         location,
                         call.resultType,
                         assignedSymbol);
-        if (assignedSymbol != null) {
-            IdentifierTree identifier =
-                    new IdentifierTree(assignedSymbol.name(), call.resultType, location);
-            return new CallExpressionWithBlockTree(callTree, List.of(identifier), blockTree);
-        }
-        return callTree;
+        IdentifierTree identifier =
+                assignedSymbol != null
+                        ? new IdentifierTree(assignedSymbol.name(), call.resultType, location)
+                        : new IdentifierTree("_standalone_", call.resultType, location);
+        return new CallExpressionWithBlockTree(callTree, List.of(identifier), blockTree);
     }
 
     @Nonnull

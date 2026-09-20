@@ -48,6 +48,8 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+// java:S3776 is intentional: single-pass traversal (scope + type + rule dispatch).
+// Splitting into helpers was tried and hurt readability more than it helped.
 /** Detection engine for JavaScript AST nodes produced by the ESLint bridge. */
 @SuppressWarnings("java:S3776")
 public final class JavaScriptDetectionEngine implements IDetectionEngine<Tree, JavaScriptSymbol> {

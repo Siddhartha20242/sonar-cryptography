@@ -45,6 +45,7 @@ import javax.annotation.Nonnull;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,9 @@ public final class ESLintExecutor {
     @Nonnull private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Nonnull private static final String NODE_RESOURCE_ROOT = "/node";
+
+    /** Maximum time (ms) to wait for the Node.js runner before killing it. */
+    private static final long WATCHDOG_TIMEOUT_MILLIS = 60_000L;
 
     @Nonnull private final Path nodeHome;
     @Nonnull private final Path nodeExecutable;
@@ -84,6 +88,8 @@ public final class ESLintExecutor {
         DefaultExecutor executor = new DefaultExecutor();
         executor.setWorkingDirectory(nodeHome.toFile());
         executor.setExitValues(new int[] {0});
+        // Guard against a hung Node.js subprocess blocking the SonarQube analysis
+        executor.setWatchdog(new ExecuteWatchdog(WATCHDOG_TIMEOUT_MILLIS));
 
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();

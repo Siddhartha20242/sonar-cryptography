@@ -62,6 +62,15 @@ public final class JavaScriptAggregator implements IAggregator {
         IAggregator.log(newNodes);
     }
 
+    /**
+     * Resets both the detected-node buffer and the language support.
+     *
+     * <p>Unlike other aggregators, JavaScript re-creates {@link JavaScriptLanguageSupport} on every
+     * reset because the underlying ESLint bridge and detection engine hold per-run state (parsed
+     * block trees, temporary bridge files). Reusing an instance across runs leaks that state
+     * between analyses. If this becomes a bottleneck, factor out the per-run state instead of
+     * reusing the whole support object.
+     */
     public static void reset() {
         javascriptLanguageSupport = new JavaScriptLanguageSupport();
         detectedNodes = new ArrayList<>();

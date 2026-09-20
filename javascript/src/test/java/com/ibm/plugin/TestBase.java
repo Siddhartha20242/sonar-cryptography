@@ -39,6 +39,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.event.Level;
 import org.sonar.api.testfixtures.log.LogTesterJUnit5;
 
+// Test contract: findings are asserted by positional findingId (see asserts()). If rule
+// traversal order changes, positional assertions may shift — prefer content-based checks.
 public abstract class TestBase extends JavaScriptInventoryRule {
 
     @Nonnull

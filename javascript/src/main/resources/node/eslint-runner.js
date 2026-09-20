@@ -43,16 +43,25 @@ process.stdin.on('end', () => {
 
         // All crypto methods to detect
         const cryptoMethods = [
-          'createHash', 'createHmac', 'createCipheriv', 'createDecipheriv',
-          'createSign', 'createVerify', 'createDiffieHellman', 'createECDH',
+          // Hash / HMAC
+          'createHash', 'createHmac',
+          // Ciphers
+          'createCipher', 'createCipheriv', 'createDecipher', 'createDecipheriv',
+          // Signatures
+          'createSign', 'createVerify', 'sign', 'verify',
+          // Key agreement
+          'createDiffieHellman', 'createECDH',
+          // Key material
           'createSecretKey', 'createPublicKey', 'createPrivateKey',
           'generateKey', 'generateKeySync', 'generateKeyPair', 'generateKeyPairSync',
+          // KDF
           'pbkdf2', 'pbkdf2Sync', 'scrypt', 'scryptSync', 'hkdf', 'hkdfSync',
+          // PRNG
           'randomBytes', 'randomFill', 'randomFillSync', 'randomInt', 'randomUUID',
+          // RSA
           'publicEncrypt', 'privateDecrypt', 'privateEncrypt', 'publicDecrypt',
-          'sign', 'verify',
-          'update', 'digest', 'final', 'computeSecret', 'generateKeys',
-          'createSecureContext', 'connect', 'createServer'
+          // TLS
+          'createSecureContext'
         ];
 
         const processStatement = (statement, startLine) => {

@@ -34,15 +34,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Language translation for JavaScript AST nodes produced by the ESLint bridge. */
 public final class JavaScriptLanguageTranslation implements ILanguageTranslation<Tree> {
-
-    @Nonnull
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(JavaScriptLanguageTranslation.class);
 
     @Nonnull
     @Override

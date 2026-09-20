@@ -30,7 +30,6 @@ import com.ibm.plugin.javascript.api.JavaScriptSymbol;
 import com.ibm.plugin.javascript.api.Tree;
 import com.ibm.plugin.javascript.language.JavaScriptScanContext;
 import com.ibm.plugin.translation.translator.JavaScriptTranslator;
-import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
 
@@ -54,8 +53,7 @@ public final class JavaScriptTranslationProcess
         final Reorganizer reorganizer = new Reorganizer(reorganizerRules);
         final List<INode> reorganizedValues = reorganizer.reorganize(translatedValues);
 
-        final List<INode> enrichedValues = Enricher.enrich(reorganizedValues).stream().toList();
-
-        return Collections.unmodifiableList(enrichedValues);
+        // .stream().toList() already returns an unmodifiable list, no extra wrap needed
+        return Enricher.enrich(reorganizedValues).stream().toList();
     }
 }

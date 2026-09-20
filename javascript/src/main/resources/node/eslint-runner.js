@@ -1,5 +1,3 @@
-const fs = require('fs');
-const path = require('path');
 
 let input = '';
 process.stdin.on('data', chunk => { input += chunk; });

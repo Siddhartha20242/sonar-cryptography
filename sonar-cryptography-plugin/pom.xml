@@ -97,7 +97,7 @@
                         <configuration>
                             <shadedArtifactAttached>false</shadedArtifactAttached>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <minimizeJar>false</minimizeJar>
+                            <minimizeJar>true</minimizeJar>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>

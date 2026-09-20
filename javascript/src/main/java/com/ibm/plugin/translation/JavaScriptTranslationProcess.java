@@ -25,7 +25,6 @@ import com.ibm.mapper.ITranslationProcess;
 import com.ibm.mapper.model.INode;
 import com.ibm.mapper.reorganizer.IReorganizerRule;
 import com.ibm.mapper.reorganizer.Reorganizer;
-import com.ibm.mapper.utils.Utils;
 import com.ibm.plugin.javascript.api.JavaScriptCheck;
 import com.ibm.plugin.javascript.api.JavaScriptSymbol;
 import com.ibm.plugin.javascript.api.Tree;
@@ -51,14 +50,11 @@ public final class JavaScriptTranslationProcess
                             rootDetectionStore) {
         final JavaScriptTranslator javascriptTranslator = new JavaScriptTranslator();
         final List<INode> translatedValues = javascriptTranslator.translate(rootDetectionStore);
-        Utils.printNodeTree(" translated ", translatedValues);
 
         final Reorganizer reorganizer = new Reorganizer(reorganizerRules);
         final List<INode> reorganizedValues = reorganizer.reorganize(translatedValues);
-        Utils.printNodeTree("reorganised ", reorganizedValues);
 
         final List<INode> enrichedValues = Enricher.enrich(reorganizedValues).stream().toList();
-        Utils.printNodeTree("  enriched  ", enrichedValues);
 
         return Collections.unmodifiableList(enrichedValues);
     }

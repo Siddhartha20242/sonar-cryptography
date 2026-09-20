@@ -64,7 +64,7 @@ public final class JavaScriptVerifier {
         JavaScriptScanContext scanContext =
                 new JavaScriptScanContext(
                         inputFile,
-                        (file, line, column, message) -> {
+                        (currentRule, file, line, column, message) -> {
                             // test noop reporter
                         });
         rule.analyzeBlock(blockTree, scanContext);

@@ -92,7 +92,8 @@ class JavaScriptDetectionIntegrationTest {
         List<Finding<JavaScriptCheck, Tree, JavaScriptSymbol, JavaScriptScanContext>> findings =
                 new ArrayList<>();
         JavaScriptScanContext scanContext =
-                new JavaScriptScanContext(inputFile, (file, line, column, message) -> {});
+                new JavaScriptScanContext(
+                        inputFile, (currentRule, file, line, column, message) -> {});
         DetectionExecutive<JavaScriptCheck, Tree, JavaScriptSymbol, JavaScriptScanContext> exec =
                 JavaScriptAggregator.getLanguageSupport()
                         .createDetectionExecutive(blockTree, rule, scanContext);

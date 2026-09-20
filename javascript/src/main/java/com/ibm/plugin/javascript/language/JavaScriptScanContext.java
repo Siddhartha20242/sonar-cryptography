@@ -49,7 +49,11 @@ public final class JavaScriptScanContext implements IScanContext<JavaScriptCheck
             return;
         }
         issueReporter.report(
-                inputFile, hasLocation.location().line(), hasLocation.location().column(), message);
+                currentRule,
+                inputFile,
+                hasLocation.location().line(),
+                hasLocation.location().column(),
+                message);
     }
 
     @Nonnull
@@ -66,7 +70,12 @@ public final class JavaScriptScanContext implements IScanContext<JavaScriptCheck
 
     /** Functional interface abstracting issue creation for testability. */
     public interface IssueReporter {
-        void report(@Nonnull InputFile inputFile, int line, int column, @Nonnull String message);
+        void report(
+                @Nonnull JavaScriptCheck currentRule,
+                @Nonnull InputFile inputFile,
+                int line,
+                int column,
+                @Nonnull String message);
     }
 
     /** Default issue reporter using SonarQube sensor context. */
@@ -81,12 +90,22 @@ public final class JavaScriptScanContext implements IScanContext<JavaScriptCheck
 
         @Override
         public void report(
-                @Nonnull InputFile inputFile, int line, int column, @Nonnull String message) {
+                @Nonnull JavaScriptCheck currentRule,
+                @Nonnull InputFile inputFile,
+                int line,
+                int column,
+                @Nonnull String message) {
+            org.sonar.check.Rule ruleAnnotation =
+                    currentRule.getClass().getAnnotation(org.sonar.check.Rule.class);
+            String ruleKeyName =
+                    (ruleAnnotation != null && !ruleAnnotation.key().isEmpty())
+                            ? ruleAnnotation.key()
+                            : JavaScriptRulesDefinition.INVENTORY_RULE_KEY;
             RuleKey ruleKey =
                     RuleKey.of(
                             JavaScriptRulesDefinition.repositoryKeyForLanguage(
                                     inputFile.language()),
-                            JavaScriptRulesDefinition.INVENTORY_RULE_KEY);
+                            ruleKeyName);
             NewIssue issue = sensorContext.newIssue().forRule(ruleKey);
             NewIssueLocation location =
                     issue.newLocation()

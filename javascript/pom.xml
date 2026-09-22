@@ -88,6 +88,16 @@
                             <workingDirectory>${project.basedir}/src/main/resources/node</workingDirectory>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>npm install eslint</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install --omit=dev</arguments>
+                            <workingDirectory>${project.basedir}/src/main/resources/node</workingDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             

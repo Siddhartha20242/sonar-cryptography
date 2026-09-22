@@ -80,4 +80,50 @@ class ESLintBridgeTest {
                         .orElseThrow();
         assertThat(createHash.objectType()).isEqualTo("crypto");
     }
+
+    @Test
+    void analyzeFiles_supportsEsmDestructuringAndIgnoresUnrelatedReceivers() throws Exception {
+        ESLintExecutor executor = ESLintExecutor.fromClasspathResources();
+        ESLintBridge bridge = new ESLintBridge(executor);
+
+        var inputFile =
+                TestInputFileBuilder.create("module", "src/esm-crypto.js")
+                        .setLanguage("js")
+                        .setType(org.sonar.api.batch.fs.InputFile.Type.MAIN)
+                        .setContents(
+                                """
+                                import crypto from 'node:crypto';
+                                import { createHash as makeHash } from 'crypto';
+                                const algorithm = 'sha256';
+                                const hash = crypto.createHash(algorithm);
+                                makeHash('md5');
+                                logger.update('data');
+                                db.connect(options);
+                                """)
+                        .build();
+
+        var trees = bridge.analyzeFiles(java.util.List.of(inputFile));
+        BlockTree blockTree = trees.get(inputFile);
+        java.util.List<String> methods =
+                blockTree.statements().stream()
+                        .flatMap(
+                                tree ->
+                                        tree
+                                                        instanceof
+                                                        com.ibm.plugin.javascript.api
+                                                                        .CallExpressionWithBlockTree
+                                                                wrapped
+                                                ? java.util.stream.Stream.of(
+                                                        wrapped.call().methodName())
+                                                : tree instanceof CallExpressionTree call
+                                                        ? java.util.stream.Stream.of(
+                                                                call.methodName())
+                                                        : java.util.stream.Stream.empty())
+                        .toList();
+
+        assertThat(methods).contains("createHash").doesNotContain("update", "connect");
+        assertThat(blockTree.variableValues()).containsEntry("algorithm", "sha256");
+        assertThat(blockTree.bindings()).containsEntry("crypto", "crypto");
+        assertThat(blockTree.bindings()).containsEntry("hash", "crypto.Hash");
+    }
 }

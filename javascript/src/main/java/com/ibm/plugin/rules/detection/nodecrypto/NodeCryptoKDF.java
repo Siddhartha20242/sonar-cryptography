@@ -122,7 +122,7 @@ public final class NodeCryptoKDF {
                     .shouldBeDetectedAs(new KeySizeFactory<>(Size.UnitType.BYTE))
                     .asChildOfParameterWithId(-1)
                     .withMethodParameter(ANY)
-                    .buildForContext(new KeyDerivationFunctionContext())
+                    .buildForContext(new KeyDerivationFunctionContext(Map.of("kind", "scrypt")))
                     .inBundle(() -> NodeCryptoTypes.BUNDLE)
                     .withoutDependingDetectionRules();
 
@@ -139,7 +139,7 @@ public final class NodeCryptoKDF {
                     .withMethodParameter("number")
                     .shouldBeDetectedAs(new KeySizeFactory<>(Size.UnitType.BYTE))
                     .asChildOfParameterWithId(-1)
-                    .buildForContext(new KeyDerivationFunctionContext())
+                    .buildForContext(new KeyDerivationFunctionContext(Map.of("kind", "scrypt")))
                     .inBundle(() -> NodeCryptoTypes.BUNDLE)
                     .withoutDependingDetectionRules();
 

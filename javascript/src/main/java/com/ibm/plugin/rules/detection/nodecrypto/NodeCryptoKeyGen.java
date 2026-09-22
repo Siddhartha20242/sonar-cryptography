@@ -116,7 +116,7 @@ public final class NodeCryptoKeyGen {
                     .forMethods("createSecretKey")
                     .shouldBeDetectedAs(new KeyActionFactory<>(KeyAction.Action.GENERATION))
                     .withMethodParameter(ANY)
-                    .buildForContext(new SecretKeyContext(Map.of()))
+                    .buildForContext(new SecretKeyContext(Map.of("kind", "import")))
                     .inBundle(() -> NodeCryptoTypes.BUNDLE)
                     .withoutDependingDetectionRules();
 
@@ -157,8 +157,8 @@ public final class NodeCryptoKeyGen {
         return List.of(
                 GENERATE_KEY,
                 GENERATE_KEY_SYNC,
-                // TODO: GENERATE_KEY_PAIR and GENERATE_KEY_PAIR_SYNC disabled
-                // pending detection engine fix for generateKeyPairSync.
+                GENERATE_KEY_PAIR,
+                GENERATE_KEY_PAIR_SYNC,
                 CREATE_SECRET_KEY,
                 CREATE_PUBLIC_KEY,
                 CREATE_PRIVATE_KEY);

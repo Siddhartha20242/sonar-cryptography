@@ -47,12 +47,12 @@
             <version>2.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
-            <dependency>
-                <groupId>com.ibm</groupId>
-                <artifactId>javascript</artifactId>
-                <version>2.0.0-SNAPSHOT</version>
-                <scope>compile</scope>
-            </dependency>
+        <dependency>
+            <groupId>com.ibm</groupId>
+            <artifactId>javascript</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -97,6 +97,9 @@
                         <configuration>
                             <shadedArtifactAttached>false</shadedArtifactAttached>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <!-- Keep minimization on. The JS module ships Node/ESLint as
+                                 resources, which shade does not strip; setting this to false
+                                 only inflates the plugin JAR. -->
                             <minimizeJar>true</minimizeJar>
                             <filters>
                                 <filter>

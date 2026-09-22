@@ -70,6 +70,9 @@ public final class ESLintResultParser {
         List<Tree> statements = new ArrayList<>();
         BlockTree blockTree = new BlockTree(Collections.emptyList(), bindings, variableValues);
         for (EslintCallExpression call : fileResult.calls) {
+            if (call == null) {
+                continue;
+            }
             Tree tree = toTree(call, bindings, blockTree);
             if (tree != null) {
                 statements.add(tree);

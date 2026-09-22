@@ -87,4 +87,16 @@ class ESLintResultParserTest {
         assertThat(result.files.get(0).calls).hasSize(1);
         assertThat(result.files.get(0).calls.get(0).methodName).isEqualTo("createHash");
     }
+
+    @Test
+    void toBlockTree_skipsNullCallEntries() {
+        EslintFileResult fileResult = new EslintFileResult();
+        fileResult.bindings = Map.of();
+        fileResult.calls = new java.util.ArrayList<>();
+        fileResult.calls.add(null);
+
+        BlockTree blockTree = ESLintResultParser.toBlockTree(fileResult);
+
+        assertThat(blockTree.statements()).isEmpty();
+    }
 }

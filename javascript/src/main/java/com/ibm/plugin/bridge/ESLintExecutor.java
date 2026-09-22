@@ -37,16 +37,21 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +95,8 @@ public final class ESLintExecutor {
         executor.setExitValues(new int[] {0});
         // Guard against a hung Node.js subprocess blocking the SonarQube analysis
         executor.setWatchdog(new ExecuteWatchdog(WATCHDOG_TIMEOUT_MILLIS));
+        Map<String, String> environment = new HashMap<>(EnvironmentUtils.getProcEnvironment());
+        environment.put("NODE_PATH", nodeHome.resolve("node_modules").toString());
 
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
@@ -98,7 +105,7 @@ public final class ESLintExecutor {
         executor.setStreamHandler(new PumpStreamHandler(stdout, stderr, stdin));
 
         try {
-            executor.execute(commandLine);
+            executor.execute(commandLine, environment);
         } catch (ExecuteException e) {
             LOG.warn("ESLint runner failed: {}", stderr.toString(StandardCharsets.UTF_8));
             throw new IOException("ESLint runner failed with exit code " + e.getExitValue(), e);
@@ -126,8 +133,8 @@ public final class ESLintExecutor {
 
     @Nonnull
     private static Path extractNodeResourcesFromJar(@Nonnull URL resourceUrl) throws IOException {
-        Path tempDir = Files.createTempDirectory("sonar-crypto-node-");
-        tempDir.toFile().deleteOnExit();
+        Path tempDir = Files.createTempDirectory("sonar-crypto-node-").toAbsolutePath();
+        registerDeleteOnExit(tempDir);
 
         if ("jar".equals(resourceUrl.getProtocol())) {
             JarURLConnection connection = (JarURLConnection) resourceUrl.openConnection();
@@ -146,11 +153,16 @@ public final class ESLintExecutor {
                         continue;
                     }
                     String relativePath = entry.getName().substring(prefix.length());
-                    Path target = tempDir.resolve(relativePath);
+                    Path target = tempDir.resolve(relativePath).normalize();
+                    if (!target.startsWith(tempDir)) {
+                        throw new IOException(
+                                "Blocked path traversal in jar entry: " + entry.getName());
+                    }
                     Files.createDirectories(target.getParent());
                     try (InputStream inputStream = jarFile.getInputStream(entry)) {
                         Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING);
                     }
+                    target.toFile().deleteOnExit();
                 }
             }
         } else {
@@ -168,6 +180,16 @@ public final class ESLintExecutor {
         return tempDir;
     }
 
+    private static void registerDeleteOnExit(@Nonnull Path root) throws IOException {
+        root.toFile().deleteOnExit();
+        if (!Files.exists(root)) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(root)) {
+            paths.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().deleteOnExit());
+        }
+    }
+
     private static void copyResourceTree(@Nonnull URI sourceUri, @Nonnull Path targetDir)
             throws IOException {
         Path sourcePath = Path.of(sourceUri);
@@ -180,7 +202,13 @@ public final class ESLintExecutor {
                             @Nonnull Path dir, @Nonnull BasicFileAttributes attrs)
                             throws IOException {
                         Path relative = sourcePath.relativize(dir);
-                        Files.createDirectories(targetDir.resolve(relative));
+                        Path target = targetDir.resolve(relative).normalize();
+                        if (!target.startsWith(targetDir.toAbsolutePath().normalize())) {
+                            throw new IOException(
+                                    "Blocked path traversal for resource directory: " + dir);
+                        }
+                        Files.createDirectories(target);
+                        target.toFile().deleteOnExit();
                         return FileVisitResult.CONTINUE;
                     }
 
@@ -190,10 +218,12 @@ public final class ESLintExecutor {
                             @Nonnull Path file, @Nonnull BasicFileAttributes attrs)
                             throws IOException {
                         Path relative = sourcePath.relativize(file);
-                        Files.copy(
-                                file,
-                                targetDir.resolve(relative),
-                                StandardCopyOption.REPLACE_EXISTING);
+                        Path target = targetDir.resolve(relative).normalize();
+                        if (!target.startsWith(targetDir.toAbsolutePath().normalize())) {
+                            throw new IOException("Blocked path traversal for resource: " + file);
+                        }
+                        Files.copy(file, target, StandardCopyOption.REPLACE_EXISTING);
+                        target.toFile().deleteOnExit();
                         return FileVisitResult.CONTINUE;
                     }
                 });

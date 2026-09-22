@@ -99,9 +99,14 @@ public final class JavaScriptDetectionEngine implements IDetectionEngine<Tree, J
     @Override
     public void run(@Nonnull TraceSymbol<JavaScriptSymbol> traceSymbol, @Nonnull Tree tree) {
         if (tree instanceof BlockTree blockTree) {
+            BlockTree previousContext = currentContext;
             currentContext = blockTree;
-            for (Tree statement : blockTree.statements()) {
-                run(traceSymbol, statement);
+            try {
+                for (Tree statement : blockTree.statements()) {
+                    run(traceSymbol, statement);
+                }
+            } finally {
+                currentContext = previousContext;
             }
         } else if (tree instanceof CallExpressionWithBlockTree wrapped) {
             handler.addCallToCallStack(wrapped, detectionStore.getScanContext());
@@ -160,10 +165,6 @@ public final class JavaScriptDetectionEngine implements IDetectionEngine<Tree, J
                     .orElse(Collections.emptyList());
         }
         if (tree instanceof IdentifierTree identifier) {
-            Optional<O> value = resolveConstant(clazz, identifier.name());
-            if (value.isPresent()) {
-                return List.of(new ResolvedValue<>(value.get(), tree));
-            }
             if (currentContext != null) {
                 String variableValue = currentContext.variableValues().get(identifier.name());
                 if (variableValue != null) {
@@ -172,6 +173,7 @@ public final class JavaScriptDetectionEngine implements IDetectionEngine<Tree, J
                             .orElse(Collections.emptyList());
                 }
             }
+            return Collections.emptyList();
         }
         if (tree instanceof CallExpressionTree call && call.arguments().size() == 1) {
             return resolveValues(clazz, call.arguments().get(0), valueFactory);

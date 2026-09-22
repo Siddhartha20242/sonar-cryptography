@@ -107,13 +107,22 @@ public final class JavaScriptScanContext implements IScanContext<JavaScriptCheck
                                     inputFile.language()),
                             ruleKeyName);
             NewIssue issue = sensorContext.newIssue().forRule(ruleKey);
-            NewIssueLocation location =
-                    issue.newLocation()
-                            .on(inputFile)
-                            .at(inputFile.selectLine(line))
-                            .message(message);
+            NewIssueLocation location = issue.newLocation().on(inputFile).message(message);
+            location.at(selectIssueRange(inputFile, line, column));
             issue.at(location);
             issue.save();
+        }
+
+        @Nonnull
+        private static org.sonar.api.batch.fs.TextRange selectIssueRange(
+                @Nonnull InputFile inputFile, int line, int column) {
+            int safeLine = Math.max(1, line);
+            int startOffset = Math.max(0, column);
+            try {
+                return inputFile.newRange(safeLine, startOffset, safeLine, startOffset + 1);
+            } catch (IllegalArgumentException ignored) {
+                return inputFile.selectLine(safeLine);
+            }
         }
     }
 }
